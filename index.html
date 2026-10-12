@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot BRUCE — l'analyse de structure du marché, sur votre PC</title>
+<meta name="description" content="Robot BRUCE observe vos graphiques en continu et repère tout seul les vagues, les niveaux de Fibonacci et les changements de régime. Application gratuite pour Windows.">
+<meta property="og:title" content="Robot BRUCE">
+<meta property="og:description" content="Le terminal qui lit la structure du marché pour vous. Gratuit pour Windows.">
+<meta property="og:image" content="img/bruce-vague.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233B82F6'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='white'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090f;
+    --bg-2: #0d111a;
+    --card: #111725;
+    --line: #1e2638;
+    --text: #e8ecf4;
+    --muted: #97a1b6;
+    --soft: #6b7590;
+    --blue: #3b82f6;
+    --violet: #a78bfa;
+    --sky: #38bdf8;
+    --pink: #f472b6;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { width: min(1160px, 100% - 32px); margin-inline: auto; }
+
+  /* Barre du haut */
+  .nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(7, 9, 15, .78); border-bottom: 1px solid var(--line); }
+  .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; letter-spacing: -.01em; }
+  .logo { width: 30px; height: 30px; border-radius: 8px; background: var(--blue); display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; }
+  .nav nav { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+  .nav nav a { text-decoration: none; }
+  .nav nav a:hover { color: var(--text); }
+  @media (max-width: 760px) { .nav nav { display: none; } }
+
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; text-decoration: none; border: 1px solid transparent; transition: transform .15s ease, background .15s ease, border-color .15s ease; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--green); color: #04130a; box-shadow: 0 10px 30px -10px rgba(34, 197, 94, .6); }
+  .btn-primary:hover { background: #2fd567; }
+  .btn-ghost { border-color: var(--line); color: var(--text); background: var(--bg-2); }
+  .btn-ghost:hover { border-color: #33405c; }
+  .btn-sm { padding: 9px 16px; font-size: 14px; }
+
+  /* En-tête */
+  .hero { position: relative; padding: 72px 0 40px; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: -40% -10% auto; height: 680px; background: radial-gradient(closest-side, rgba(167, 139, 250, .22), transparent 70%), radial-gradient(closest-side at 70% 40%, rgba(56, 189, 248, .14), transparent 70%); pointer-events: none; }
+  .hero .wrap { position: relative; text-align: center; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); font-size: 13px; color: var(--muted); }
+  .pill b { color: var(--green); font-weight: 600; }
+  h1 { font-size: clamp(34px, 6vw, 62px); line-height: 1.07; letter-spacing: -.035em; margin: 22px auto 18px; max-width: 900px; font-weight: 800; }
+  h1 .grad { background: linear-gradient(90deg, var(--violet), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 700px; margin: 0 auto 32px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .meta { margin-top: 14px; font-size: 13px; color: var(--soft); }
+  .shot { margin-top: 48px; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; box-shadow: 0 40px 120px -40px rgba(56, 189, 248, .35), 0 0 0 1px rgba(255,255,255,.02); background: var(--bg-2); }
+  .shot figcaption { padding: 12px 16px; font-size: 13px; color: var(--soft); border-top: 1px solid var(--line); text-align: left; }
+  .legend { display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; }
+  .legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  section { padding: 84px 0; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; color: var(--violet); margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 4vw, 40px); letter-spacing: -.025em; line-height: 1.15; margin: 0 0 14px; font-weight: 800; }
+  .sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-size: 17px; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .card h3 { margin: 14px 0 6px; font-size: 17px; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: rgba(167, 139, 250, .12); color: var(--violet); }
+  .ico svg { width: 22px; height: 22px; }
+
+  .split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .split.rev { grid-template-columns: 1fr 1.05fr; }
+  .split.rev .media { order: 2; }
+  @media (max-width: 900px) { .split, .split.rev { grid-template-columns: 1fr; gap: 28px; } .split.rev .media { order: 0; } }
+  .media { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--bg-2); }
+  .ticks { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 12px; }
+  .ticks li { display: flex; gap: 12px; color: var(--muted); }
+  .ticks li::before { content: ""; flex: none; width: 20px; height: 20px; margin-top: 3px; border-radius: 50%; background: rgba(34,197,94,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.6' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat; }
+  .ticks b { color: var(--text); font-weight: 600; }
+
+  .markets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .markets { grid-template-columns: repeat(2, 1fr); } }
+  .market { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .market strong { display: block; font-size: 16px; }
+  .market span { font-size: 13px; color: var(--soft); }
+  .market em { display: inline-block; margin-top: 10px; font-style: normal; font-size: 12px; padding: 3px 9px; border-radius: 999px; background: rgba(56,189,248,.1); color: var(--sky); }
+  .market em.live { background: rgba(34,197,94,.12); color: var(--green); }
+
+  .steps { counter-reset: s; display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
+  .step { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 24px 24px; }
+  .step::before { counter-increment: s; content: counter(s); position: absolute; top: -14px; left: 22px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; background: var(--blue); color: #fff; }
+  .step h3 { margin: 6px 0 6px; font-size: 17px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .note { margin-top: 22px; padding: 16px 18px; border-radius: 12px; background: rgba(245, 158, 11, .08); border: 1px solid rgba(245, 158, 11, .28); color: #f6d39a; font-size: 14.5px; }
+  .note b { color: #fde68a; }
+  code, kbd { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .92em; background: #161d2d; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; color: var(--text); }
+
+  .soon { background: linear-gradient(135deg, rgba(167,139,250,.14), rgba(56,189,248,.08)); border: 1px solid rgba(167,139,250,.3); border-radius: 20px; padding: 36px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+  @media (max-width: 700px) { .soon { grid-template-columns: 1fr; padding: 26px; } }
+  .soon .ico { width: 56px; height: 56px; border-radius: 14px; }
+  .soon h3 { margin: 0 0 6px; font-size: 21px; }
+  .soon p { margin: 0; color: var(--muted); }
+
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 20px; margin-bottom: 10px; }
+  summary { cursor: pointer; padding: 16px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--soft); font-size: 20px; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  details p { margin: 0 0 16px; color: var(--muted); }
+
+  .final { text-align: center; padding: 90px 0; background: radial-gradient(closest-side at 50% 0%, rgba(34,197,94,.12), transparent 80%); border-top: 1px solid var(--line); }
+  .final p { color: var(--muted); max-width: 600px; margin: 0 auto 28px; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0 44px; color: var(--soft); font-size: 13.5px; }
+  footer .wrap { display: grid; gap: 14px; }
+  .disclaimer { max-width: 860px; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><span class="logo">B</span> Robot BRUCE</a>
+    <nav>
+      <a href="#fonctions">Fonctions</a>
+      <a href="#marches">Marchés</a>
+      <a href="#installer">Installer</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="https://github.com/jovkey/bruce-releases/releases/latest/download/Robot-BRUCE-setup.exe">Télécharger</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill"><b>●</b> Version 1.0.9 · Windows 10 et 11 · Gratuit</span>
+      <h1>Le robot qui <span class="grad">lit la structure du marché</span> pour vous.</h1>
+      <p class="lead">Robot BRUCE observe vos graphiques en continu et repère tout seul les vagues, les niveaux de Fibonacci et les changements de régime — puis vous alerte, au bon endroit, sur le graphique.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/jovkey/bruce-releases/releases/latest/download/Robot-BRUCE-setup.exe">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+          Télécharger pour Windows
+        </a>
+        <a class="btn btn-ghost" href="#fonctions">Découvrir les fonctions</a>
+      </div>
+      <p class="meta">Installateur de 5,2 Mo · mises à jour automatiques · vos données restent sur votre ordinateur</p>
+
+      <figure class="shot">
+        <img src="img/bruce-vague.webp" width="1800" height="840" alt="Graphique Bitcoin en 4 heures dans Robot BRUCE : une Vague 1 tracée en violet et son niveau en bleu, détectés automatiquement.">
+        <figcaption>
+          <span class="legend"><i style="background:var(--violet)"></i>Vague détectée</span>
+          <span class="legend"><i style="background:var(--sky)"></i>Niveau First Bound</span>
+          Bitcoin en 4 h : BRUCE a repéré seul le début de la Vague 1 et tracé son niveau.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="fonctions">
+    <div class="wrap">
+      <div class="eyebrow">Ce que fait BRUCE</div>
+      <h2>Une analyse rigoureuse, sans rester collé à l'écran.</h2>
+      <p class="sub">BRUCE applique toujours la même méthode, bougie après bougie. Vous voyez ce qu'il a détecté, où et quand — rien n'est inventé : uniquement les vraies bougies du marché.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 4-7 5 6"/></svg></div>
+          <h3>Vagues détectées automatiquement</h3>
+          <p>Le début et la confirmation de chaque vague sont tracés directement sur le graphique, en couleur, avec leur étiquette.</p>
+        </div>
+        <div class="card">
+          <div class="ico" style="background:rgba(56,189,248,.12);color:var(--sky)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 10h18M3 14.5h18M3 19h18" stroke-dasharray="3 3"/></svg></div>
+          <h3>Fibonacci et niveaux clés</h3>
+          <p>38,2 %, 50 %, 61,8 %, 76,4 % : BRUCE signale chaque niveau atteint, ainsi que les zones First Bound et Second Bound.</p>
+        </div>
+        <div class="card">
+          <div class="ico" style="background:rgba(244,114,182,.12);color:var(--pink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg></div>
+          <h3>Tendance ou RANGE</h3>
+          <p>BRUCE indique si le marché est en tendance ou s'il entre dans un RANGE, pour éviter de forcer une lecture qui n'est plus valable.</p>
+        </div>
+        <div class="card">
+          <div class="ico" style="background:rgba(245,158,11,.12);color:var(--amber)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg></div>
+          <h3>Alertes avec son</h3>
+          <p>Chaque événement important arrive dans le centre d'alertes, avec l'heure, l'actif et le prix. Un clic vous emmène à l'endroit exact du graphique.</p>
+        </div>
+        <div class="card">
+          <div class="ico" style="background:rgba(34,197,94,.12);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2M3.05 11a9 9 0 11.5 4M3 4v4h4"/></svg></div>
+          <h3>Des années d'historique</h3>
+          <p>Faites défiler vers la gauche et remontez le temps : l'historique se charge et s'enregistre sur votre PC, puis reste disponible hors ligne.</p>
+        </div>
+        <div class="card">
+          <div class="ico" style="background:rgba(59,130,246,.14);color:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></div>
+          <h3>Jusqu'à 4 graphiques</h3>
+          <p>Surveillez 1, 2, 3 ou 4 marchés à la fois. Glissez les bordures pour agrandir celui qui vous intéresse, fermez les autres d'un clic.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:20px">
+    <div class="wrap split">
+      <div class="media"><img src="img/bruce-4-graphiques.webp" width="1800" height="840" loading="lazy" alt="Quatre graphiques surveillés en même temps : Bitcoin, Ethereum, Solana et XRP."></div>
+      <div>
+        <div class="eyebrow">Multi-graphiques</div>
+        <h2>Quatre marchés, un seul coup d'œil.</h2>
+        <p class="sub" style="margin-bottom:0">Pendant que vous regardez le Bitcoin, BRUCE garde un œil sur Ethereum, Solana ou l'euro-dollar.</p>
+        <ul class="ticks">
+          <li><span><b>Choix rapide</b> : la catégorie, puis l'actif, puis l'unité de temps (1 minute à 1 mois).</span></li>
+          <li><span><b>Zoom professionnel</b> : molette, pavé tactile, glisser, double-clic pour recentrer.</span></li>
+          <li><span><b>Taille libre</b> : glissez la bordure entre deux graphiques, double-clic pour des parts égales.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:20px">
+    <div class="wrap split rev">
+      <div class="media"><img src="img/bruce-bulles.webp" width="1040" height="560" loading="lazy" alt="Une bulle d'aide apparaît à côté de l'onglet Alertes pour expliquer son rôle."></div>
+      <div>
+        <div class="eyebrow">Facile dès le premier jour</div>
+        <h2>Un guide qui vous accompagne là où vous cliquez.</h2>
+        <p class="sub" style="margin-bottom:0">Pas de long tutoriel à valider : quand vous ouvrez un endroit pour la première fois, une petite bulle vous explique à quoi il sert.</p>
+        <ul class="ticks">
+          <li><span><b>Automatique</b> lors des deux premières ouvertures, puis discret.</span></li>
+          <li><span><b>Toujours disponible</b> : l'ampoule en haut de l'écran relance le guide.</span></li>
+          <li><span><b>En français ou en anglais</b>, thème sombre ou clair.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="marches">
+    <div class="wrap">
+      <div class="eyebrow">Marchés couverts</div>
+      <h2>Crypto, Forex, or, actions et indices.</h2>
+      <p class="sub">Les cryptomonnaies fonctionnent tout de suite, en temps réel. Les autres marchés utilisent votre clé gratuite Twelve Data (voir l'installation).</p>
+      <div class="markets">
+        <div class="market"><strong>Crypto</strong><span>BTC, ETH, SOL, XRP, BNB, ADA, DOGE, AVAX, LINK, DOT, LTC, TRX</span><br><em class="live">Temps réel · sans clé</em></div>
+        <div class="market"><strong>Forex</strong><span>EUR/USD, GBP/USD, USD/JPY, EUR/GBP et d'autres paires</span><br><em>Clé Twelve Data</em></div>
+        <div class="market"><strong>Métaux</strong><span>Or (XAU/USD), argent (XAG/USD)</span><br><em>Clé Twelve Data</em></div>
+        <div class="market"><strong>Actions</strong><span>Apple, Microsoft, Nvidia, Tesla, Amazon, Google, Meta</span><br><em>Clé Twelve Data</em></div>
+        <div class="market"><strong>Indices</strong><span>S&amp;P 500, Nasdaq 100</span><br><em>Clé Twelve Data</em></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="installer">
+    <div class="wrap">
+      <div class="eyebrow">Installation</div>
+      <h2>Prêt en trois minutes.</h2>
+      <p class="sub">Aucune connaissance technique nécessaire.</p>
+      <div class="steps">
+        <div class="step">
+          <h3>Téléchargez et installez</h3>
+          <p>Cliquez sur « Télécharger pour Windows », ouvrez le fichier <code>Robot-BRUCE-setup.exe</code> puis suivez l'installation.</p>
+        </div>
+        <div class="step">
+          <h3>Créez votre compte</h3>
+          <p>Au premier lancement, choisissez une adresse e-mail et un mot de passe. Votre compte reste sur votre ordinateur.</p>
+        </div>
+        <div class="step">
+          <h3>Ajoutez votre clé (facultatif)</h3>
+          <p>Pour le Forex, l'or, les actions et les indices : créez un compte gratuit sur <a href="https://twelvedata.com" rel="noopener">twelvedata.com</a>, copiez votre clé, puis collez-la dans <b>Paramètres → Fournisseurs de données</b>.</p>
+        </div>
+      </div>
+      <div class="note">
+        <b>Message de Windows au premier lancement ?</b> C'est normal pour une application indépendante qui n'a pas encore de certificat payant. Cliquez sur <b>« Informations complémentaires »</b>, puis sur <b>« Exécuter quand même »</b>. Chaque version est signée numériquement pour les mises à jour : BRUCE refuse toute mise à jour qui ne vient pas de nous.
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:28px" class="split">
+        <div class="media" style="max-width:560px"><img src="img/bruce-parametres.webp" width="562" height="548" loading="lazy" alt="Fenêtre Paramètres de BRUCE : langue, thème, présentation et champ pour la clé Twelve Data."></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:20px">
+    <div class="wrap">
+      <div class="soon">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg></div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px">Bientôt</div>
+          <h3>Connexion à votre compte de démonstration</h3>
+          <p>Une prochaine version permettra de relier BRUCE à un compte broker de démonstration, pour s'entraîner sans risquer d'argent réel. Elle arrivera par une simple mise à jour automatique.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap" style="max-width:820px">
+      <div class="eyebrow">Questions fréquentes</div>
+      <h2>Bon à savoir</h2>
+      <details>
+        <summary>BRUCE est-il gratuit ?</summary>
+        <p>Oui. La clé Twelve Data pour le Forex, l'or et les actions est elle aussi gratuite (offre de base : 8 demandes par minute et 800 par jour, que BRUCE respecte automatiquement).</p>
+      </details>
+      <details>
+        <summary>Comment se font les mises à jour ?</summary>
+        <p>BRUCE vérifie une fois par jour s'il existe une nouvelle version (ou à la demande dans Paramètres → Rechercher une mise à jour). Elle s'installe par-dessus l'ancienne : vos comptes, vos réglages et votre historique sont conservés.</p>
+      </details>
+      <details>
+        <summary>Où sont mes données ?</summary>
+        <p>Sur votre ordinateur. L'historique des bougies et les détections de BRUCE sont enregistrés localement, avec des sauvegardes automatiques. Votre clé Twelve Data est rangée dans le Gestionnaire d'identifiants de Windows.</p>
+      </details>
+      <details>
+        <summary>BRUCE passe-t-il des ordres à ma place ?</summary>
+        <p>Non. BRUCE analyse et alerte ; c'est vous qui décidez. La future connexion concernera d'abord les comptes de démonstration.</p>
+      </details>
+      <details>
+        <summary>Fonctionne-t-il sur Mac ou sur téléphone ?</summary>
+        <p>Pas encore : BRUCE est aujourd'hui une application pour Windows 10 et 11 (64 bits).</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Laissez BRUCE surveiller le marché.</h2>
+      <p>Installez-le en quelques minutes ; les mises à jour suivront toutes seules.</p>
+      <a class="btn btn-primary" href="https://github.com/jovkey/bruce-releases/releases/latest/download/Robot-BRUCE-setup.exe">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+        Télécharger Robot BRUCE
+      </a>
+      <p class="meta" style="margin-top:14px"><a href="https://github.com/jovkey/bruce-releases/releases" rel="noopener">Toutes les versions et leurs nouveautés</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b style="color:var(--text)">Robot BRUCE</b> — Robot de Trading de la Famille BRUCE</div>
+    <p class="disclaimer">Avertissement : BRUCE est un outil d'analyse et d'aide à la lecture des graphiques. Il ne constitue pas un conseil en investissement. Le trading comporte un risque élevé de perte en capital ; les performances passées ne préjugent pas des performances futures. Ne tradez que des sommes que vous pouvez vous permettre de perdre.</p>
+  </div>
+</footer>
+
+</body>
+</html>
